@@ -89,9 +89,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .rm-btn:hover{color:rgba(220,80,80,0.8)}
 
 /* Desktop: tabla normal */
-@media(min-width:640px){
-  .quote-cards{display:none!important}
-}
+
 .quote-table-wrap{display:none}
 table.qt{width:100%;border-collapse:collapse;font-size:13px}
 table.qt th{font-size:10px;font-weight:500;color:rgba(255,255,255,0.28);padding:6px 8px;text-align:left;border-bottom:1px solid rgba(45,202,174,0.1);white-space:nowrap;letter-spacing:.4px;text-transform:uppercase}
@@ -654,6 +652,11 @@ function buildCondsPDF(){
 }
 
 renderTabs();renderProds();rebuildQuote();
+
+// Re-renderizar al cambiar tamaño de ventana
+window.addEventListener('resize', ()=>{
+  if(Object.keys(quote).length) rebuildQuote();
+});
 
 // Ocultar splash
 window.addEventListener('load',()=>{
