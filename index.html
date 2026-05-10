@@ -73,18 +73,11 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .empty{text-align:center;padding:2rem 1rem;color:rgba(255,255,255,0.2);font-size:13px}
 
 /* QUOTE TABLE - mobile: cards */
-.quote-cards{display:flex;flex-direction:column;gap:8px}
-.qcard{background:rgba(45,202,174,0.05);border:1px solid rgba(45,202,174,0.12);border-radius:10px;padding:10px 12px}
-.qcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.qcard-name{font-weight:600;font-size:13px;color:#e8f0eb}
-.qcard-pres{font-size:10px;color:rgba(255,255,255,0.28);margin-top:2px}
-.qcard-dosis{font-size:10px;color:rgba(255,255,255,0.18);margin-top:1px}
-.qcard-bottom{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
 .qty-wrap{display:flex;align-items:center;gap:4px}
 .qbtn{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);background:transparent;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.45);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;transition:all .15s}
 .qbtn:hover,.qbtn:active{background:#2dcaae;color:#0d1f17;border-color:#2dcaae}
-.qcard-unit{font-size:10px;color:rgba(255,255,255,0.25);margin-left:2px}
-.qcard-subtotal{margin-left:auto;font-weight:700;color:#2dcaae;font-size:14px;white-space:nowrap}
+
 .rm-btn{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.2);font-size:14px;padding:2px 4px}
 .rm-btn:hover{color:rgba(220,80,80,0.8)}
 
@@ -105,6 +98,10 @@ table.qt tbody tr:last-child td{border-bottom:none}
 
 .footer-bar{margin-top:14px;background:linear-gradient(90deg,#1a6b5a,#2dcaae 50%,#c8a84b);border-radius:10px;height:4px}
 .note{font-size:11px;color:rgba(255,255,255,0.18);margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)}
+@media(max-width:640px){
+  table.qt th:nth-child(2),table.qt td:nth-child(2){min-width:130px}
+  table.qt th:nth-child(3),table.qt td:nth-child(3){min-width:90px}
+}
 .btn-wa{background:#25d366;color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-wa:hover{background:#1ebe5d}
 /* Condiciones */
@@ -166,10 +163,7 @@ table.qt tbody tr:last-child td{border-bottom:none}
       </button>
     </div>
     <div id="quote-empty" class="empty">Seleccioná productos del catálogo para armar la cotización</div>
-    <!-- Mobile: cards -->
-    <div id="quote-cards" class="quote-cards" style="display:none"></div>
-    <!-- Desktop: tabla -->
-    <div class="quote-table-wrap" id="quote-table-wrap">
+    <div id="quote-table-wrap" style="overflow-x:auto">
       <table class="qt">
         <thead><tr>
           <th style="width:32%">Producto</th>
@@ -335,58 +329,23 @@ function toggleProd(id){
 function rebuildQuote(){
   const ids=Object.keys(quote);
   const empty=document.getElementById('quote-empty');
-  const cards=document.getElementById('quote-cards');
-  const tableWrap=document.getElementById('quote-table-wrap');
+  const wrap=document.getElementById('quote-table-wrap');
   const tbar=document.getElementById('totals-bar');
   const note=document.getElementById('note');
   if(!ids.length){
-    empty.style.display='';cards.style.display='none';
-    document.getElementById('quote-table-wrap').style.display='none';
+    empty.style.display='';wrap.style.display='none';
     tbar.style.display='none';note.style.display='none';
     return;
   }
-  empty.style.display='none';tbar.style.display='grid';note.style.display='';
+  empty.style.display='none';wrap.style.display='';
+  tbar.style.display='grid';note.style.display='';
 
-  // Mobile cards - solo en mobile
-  cards.style.display=isMobile()?'flex':'none';
-  cards.innerHTML=ids.map(id=>{
-    const pr=PRODS.find(x=>x.id===id);
-    const q=quote[id];
-    return `<div class="qcard" id="qcard-${id}">
-      <div class="qcard-top">
-        <div>
-          <div class="qcard-name">${pr.name}</div>
-          <div class="qcard-pres">${pr.pres}</div>
-          ${pr.dosis&&pr.dosis!=='—'?`<div class="qcard-dosis">${pr.dosis}</div>`:''}
-        </div>
-        <button class="rm-btn" onclick="rmItem('${id}')">✕</button>
-      </div>
-      <div class="qcard-bottom">
-        <div class="qty-wrap">
-          <button class="qbtn" onclick="chQty('${id}',-1)">−</button>
-          <input type="number" min="1" value="${q.qty}" id="qc-qty-${id}"
-            style="width:50px;border:1px solid rgba(45,202,174,0.3);border-radius:6px;padding:4px;font-size:14px;text-align:center;color:#e8f0eb;background:rgba(255,255,255,0.05);font-family:inherit;outline:none"
-            onchange="setQty('${id}',this)" oninput="setQty('${id}',this)">
-          <button class="qbtn" onclick="chQty('${id}',1)">+</button>
-          <span class="qcard-unit">${pr.u}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <input type="number" min="0" step="0.01" value="${q.price.toFixed(2)}" id="qc-pr-${id}"
-            style="width:72px;border:1px solid rgba(45,202,174,0.3);border-radius:6px;padding:4px 6px;font-size:14px;text-align:right;color:#e8f0eb;background:rgba(255,255,255,0.05);font-family:inherit;outline:none"
-            onchange="setPr('${id}',this)" oninput="setPr('${id}',this)">
-          <span style="font-size:10px;color:rgba(255,255,255,0.25)">${ul(pr)}</span>
-        </div>
-        <div class="qcard-subtotal" id="qcard-sub-${id}">$${(q.qty*q.price).toFixed(2)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Desktop table
   const tbody=document.getElementById('quote-tbody');
   tbody.innerHTML='';
   ids.forEach(id=>{
     const pr=PRODS.find(x=>x.id===id);
     const q=quote[id];
+    const ul2=ul(pr);
     const tr=document.createElement('tr');tr.dataset.id=id;
     const tdName=document.createElement('td');
     tdName.innerHTML=`<span style="font-weight:600;color:#e8f0eb">${pr.name}</span><br><span style="font-size:11px;color:rgba(255,255,255,0.28)">${pr.pres}</span>${pr.dosis&&pr.dosis!=='—'?`<br><span style="font-size:10px;color:rgba(255,255,255,0.18)">${pr.dosis}</span>`:''}`;
@@ -398,13 +357,13 @@ function rebuildQuote(){
     qi.addEventListener('change',()=>setQty(id,qi));qi.addEventListener('input',()=>setQty(id,qi));
     const bp=document.createElement('button');bp.className='qbtn';bp.textContent='+';bp.type='button';bp.onclick=()=>chQty(id,1);
     qw.append(bm,qi,bp);
-    const ul2=document.createElement('div');ul2.style.cssText='font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;text-align:center';ul2.textContent=pr.u;
-    tdQty.append(qw,ul2);
+    const ul3=document.createElement('div');ul3.style.cssText='font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;text-align:center';ul3.textContent=pr.u;
+    tdQty.append(qw,ul3);
     const tdPr=document.createElement('td');
     const pi=document.createElement('input');pi.type='number';pi.min='0';pi.step='0.01';pi.value=q.price.toFixed(2);pi.id='qt-pr-'+id;
     pi.style.cssText='width:76px;border:1px solid rgba(45,202,174,0.3);border-radius:6px;padding:5px 6px;font-size:14px;text-align:right;color:#e8f0eb;background:rgba(255,255,255,0.05);font-family:inherit;outline:none';
     pi.addEventListener('change',()=>setPr(id,pi));pi.addEventListener('input',()=>setPr(id,pi));
-    const pl=document.createElement('div');pl.style.cssText='font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;text-align:right';pl.textContent=ul(pr);
+    const pl=document.createElement('div');pl.style.cssText='font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;text-align:right';pl.textContent=ul2;
     tdPr.append(pi,pl);
     const tdSub=document.createElement('td');tdSub.className='sub-cell sub-val';tdSub.textContent='$'+(q.qty*q.price).toFixed(2);
     const tdRm=document.createElement('td');const rb=document.createElement('button');rb.className='rm-btn';rb.textContent='✕';rb.type='button';rb.onclick=()=>rmItem(id);tdRm.append(rb);
@@ -412,6 +371,7 @@ function rebuildQuote(){
   });
   updateTotals();
 }
+
 
 function chQty(id,d){
   const q=quote[id];if(!q)return;
@@ -653,10 +613,7 @@ function buildCondsPDF(){
 
 renderTabs();renderProds();rebuildQuote();
 
-// Re-renderizar al cambiar tamaño de ventana
-window.addEventListener('resize', ()=>{
-  if(Object.keys(quote).length) rebuildQuote();
-});
+
 
 // Ocultar splash
 window.addEventListener('load',()=>{
