@@ -90,8 +90,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 
 /* Desktop: tabla normal */
 @media(min-width:640px){
-  .quote-cards{display:none}
-  .quote-table-wrap{display:block!important}
+  .quote-cards{display:none!important}
 }
 .quote-table-wrap{display:none}
 table.qt{width:100%;border-collapse:collapse;font-size:13px}
@@ -343,13 +342,15 @@ function rebuildQuote(){
   const tbar=document.getElementById('totals-bar');
   const note=document.getElementById('note');
   if(!ids.length){
-    empty.style.display='';cards.style.display='none';tbar.style.display='none';note.style.display='none';
+    empty.style.display='';cards.style.display='none';
+    document.getElementById('quote-table-wrap').style.display='none';
+    tbar.style.display='none';note.style.display='none';
     return;
   }
   empty.style.display='none';tbar.style.display='grid';note.style.display='';
 
-  // Mobile cards
-  cards.style.display='flex';
+  // Mobile cards - solo en mobile
+  cards.style.display=isMobile()?'flex':'none';
   cards.innerHTML=ids.map(id=>{
     const pr=PRODS.find(x=>x.id===id);
     const q=quote[id];
