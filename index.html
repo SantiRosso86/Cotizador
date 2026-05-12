@@ -177,7 +177,13 @@ table.qt tbody tr:last-child td{border-bottom:none}
     </div>
     <div id="totals-bar" class="totals-bar" style="display:none">
       <div class="tcard"><div class="tcard-lbl">Productos</div><div class="tcard-val" id="t-items">0</div></div>
-      <div class="tcard"><div class="tcard-lbl">Total US$ (sin IVA)</div><div class="tcard-val" id="t-usd">$0</div></div>
+      <div class="tcard" id="total-card" style="cursor:pointer;position:relative" onclick="toggleTotal()">
+        <div class="tcard-lbl">Total US$ (sin IVA)</div>
+        <div class="tcard-val" id="t-usd" style="filter:blur(6px);user-select:none">$0</div>
+        <div id="total-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(45,202,174,0.08);border:1px dashed rgba(45,202,174,0.3)">
+          <span style="font-size:12px;color:#2dcaae;font-weight:500">👁 Mostrar total</span>
+        </div>
+      </div>
     </div>
     <div id="note" class="note" style="display:none">Precios sin IVA. Se tomará el dólar divisa venta Banco Nación del día del pago.</div>
   </div>
@@ -510,7 +516,7 @@ function buildPDFHTML(client){
   <div class="hdr"><img src="${LOGO_SRC}" alt="Biofilm"><div class="hdr-right"><strong>${client}</strong>${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}<br><span class="badge">Lista N° 25</span></div></div>
   <div class="body">
     <table><thead><tr><th>Producto</th><th>Presentación</th><th>Cantidad</th><th>Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="total-row"><div style="font-size:11px;color:#888;margin-bottom:3px">Total sin IVA</div><div class="total-val">US$ ${total.toFixed(2)}</div></div>
+    ${totalVisible ? `<div class="total-row"><div style="font-size:11px;color:#888;margin-bottom:3px">Total sin IVA</div><div class="total-val">US$ ${total.toFixed(2)}</div></div>` : ''}
     ${condsHTML}
   </div>
   <div class="grad-bar"></div>
@@ -552,7 +558,7 @@ function exportPDF(){
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
   <div class="hdr"><img src="${LOGO}" alt="Biofilm"><div class="hdr-right"><strong>${client}</strong>${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}<br><span class="badge">Lista N° 25</span></div></div>
   <div class="body"><table><thead><tr><th>Producto</th><th>Presentación</th><th>Cantidad</th><th>Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="total-row"><div style="font-size:11px;color:#888;margin-bottom:3px">Total sin IVA</div><div class="total-val">US$ ${total.toFixed(2)}</div></div></div>
+  ${totalVisible ? `<div class="total-row"><div style="font-size:11px;color:#888;margin-bottom:3px">Total sin IVA</div><div class="total-val">US$ ${total.toFixed(2)}</div></div>` : ''}</div>
   <div class="grad-bar"></div>
   <div class="footer"><span>Precios sin IVA. Se tomará el dólar divisa venta Banco Nación del día del pago.</span><div style="background:#0d2b1e;padding:5px 10px;border-radius:5px;display:inline-flex"><img src="${LOGO}" alt="Biofilm" style="height:22px"></div></div>
   ${buildCondsPDF()}
@@ -570,6 +576,20 @@ document.addEventListener('DOMContentLoaded',()=>{
     title.closest('.cond-group').classList.add('collapsed');
   });
 });
+
+let totalVisible = false;
+function toggleTotal(){
+  totalVisible = !totalVisible;
+  const usd = document.getElementById('t-usd');
+  const overlay = document.getElementById('total-overlay');
+  if(totalVisible){
+    usd.style.filter = 'none';
+    overlay.style.display = 'none';
+  } else {
+    usd.style.filter = 'blur(6px)';
+    overlay.style.display = 'flex';
+  }
+}
 
 function toggleRow(row){
   row.classList.toggle('selected');
